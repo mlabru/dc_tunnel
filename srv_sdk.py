@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+srv_sdk
+simulate datachannel endpoint
+
+2022/fev  1.0  mlabru   initial version (Linux/Python)
+"""
 # < imports >--------------------------------------------------------------------------------------
 
 import socket

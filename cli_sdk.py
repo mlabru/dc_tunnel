@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+cli_sdk
+simulate datachannel client side
+
+2022/fev  1.0  mlabru   initial version (Linux/Python)
+"""
 # < imports >--------------------------------------------------------------------------------------
 
 import socket
