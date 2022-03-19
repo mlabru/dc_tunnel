@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-tgt_app
-simulate target application
+cli_app
+simulate client application
 
 2022/fev  1.0  mlabru   initial version (Linux/Python)
 """
@@ -11,36 +11,36 @@ import socket
 import sys
 
 # -------------------------------------------------------------------------------------------------
-def echo_server(fs_app_ip, fi_app_port):
+def echo_client(fs_app_ip, fi_app_port):
 
     # create socket stream
     l_ssck = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # bind local port
-    l_ssck.bind((fs_app_ip, fi_app_port))
+    # connect server port
+    l_ssck.connect((fs_app_ip, fi_app_port))
 
-    # listening for incoming connections
-    l_ssck.listen(1)
-
-    # accept an incoming connection
-    l_conn, l_addr = l_ssck.accept()
-    print("client:", l_conn, l_addr)
+    # init packet number
+    li_ndx = 0
 
     # while ok...
-    while 1:
-        # read client data
-        l_data = l_conn.recv(4096)
-       
-        if not l_data:
-            # quit while 
-            break
+    while True:
+        # increment packet number
+        li_ndx += 1
 
-        # send all incoming data back (echo)
-        l_conn.sendall(l_data)
+        # send packet
+        l_ssck.sendall("Hello, world ({})".format(li_ndx).encode())
 
-    # close client connection
-    l_conn.close()
-    
+        # receive response
+        l_data = l_ssck.recv(4096)
+
+        # 10000 messages ?
+        if 0 == (li_ndx % 10000):
+            # log
+            print("Received", repr(l_data))
+
+    # close server connection
+    l_ssck.close()
+
 # -------------------------------------------------------------------------------------------------
 def main():
 
@@ -59,8 +59,8 @@ def main():
         ls_host_name = socket.gethostname()
         # local host address
         ls_app_ip = socket.gethostbyname(ls_host_name)
-        print("app hostname:", ls_host_name, "ip:", ls_app_ip)
-        
+        print("cli app hostname:", ls_host_name, "ip:", ls_app_ip)
+
     # em caso de erro...
     except socket.gaierror:
         # log
@@ -68,11 +68,11 @@ def main():
         # quit
         sys.exit()
 
-    # start server
-    echo_server(ls_app_ip, li_app_port)
+    # start client
+    echo_client(ls_app_ip, li_app_port)
 
 # -------------------------------------------------------------------------------------------------
-        
+    
 main()
-            
+
 # < the end >--------------------------------------------------------------------------------------

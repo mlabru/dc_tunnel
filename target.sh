@@ -2,7 +2,7 @@
 
 # device address
 LS_TGT_HOST="localhost"
-LI_TGT_PORT=50000
+LI_TGT_PORT=50001
 
 # datachannel address
 LS_TUNNEL_HOST="localhost"
