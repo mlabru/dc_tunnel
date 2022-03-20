@@ -305,7 +305,7 @@ def main():
     # the first argument is the datachannel address and the second argument is the client address ?
     if len(sys.argv) < 3:
         # show usage
-        print("<datachannel-port> <client-port>")
+        print("<datachannel-addr>:<datachannel-port> <client-port>")
         # quit
         exit()
 
@@ -324,7 +324,11 @@ def main():
         sys.exit()
 
     # datachannel endpoint
-    lt_datachannel = (ls_app_ip, int(sys.argv[1]))
+    llst_datachannel = sys.argv[1].split(':')
+    # datachannel port
+    llst_datachannel[1] = int(llst_datachannel[1])
+    # datachannel endpoint
+    lt_datachannel = tuple(llst_datachannel)
 
     # client endpoint
     lt_client = (ls_app_ip, int(sys.argv[2]))

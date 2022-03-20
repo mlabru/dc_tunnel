@@ -1,7 +1,7 @@
 #/bin/bash
 
 # datachannel address
-# LS_TUNNEL_HOST="localhost"
+LS_TUNNEL_HOST="einstein"
 LI_TUNNEL_PORT=61001
 
 # device address
@@ -14,7 +14,7 @@ LI_CLI_PORT=50001
 
 # start device app
 # <target-port>
-python3 tgt_app.py $LI_TGT_PORT > tgt_app.log 2> tgt_app.err &
+python3 tgt_app.py $LI_TGT_PORT > tgt_app.log &
 sleep 2
 
 # start datachannel target
@@ -23,10 +23,10 @@ python3 sdk_tgt.py $LI_TUNNEL_PORT $LI_TGT_PORT > sdk_tgt.log 2> sdk_tgt.err &
 sleep 2
 
 # start datachannel client
-# <datachannel-port> <client-port>
-python3 sdk_cli.py $LI_TUNNEL_PORT $LI_CLI_PORT > sdk_cli.log 2> sdk_cli.err &
+# <datachannel-addr>:<datachannel-port> <client-port>
+python3 sdk_cli.py $LS_TUNNEL_HOST:$LI_TUNNEL_PORT $LI_CLI_PORT > sdk_cli.log 2> sdk_cli.err &
 sleep 2
 
 # start client app
 # <client-port>
-python3 cli_app.py $LI_CLI_PORT > cli_app.log 2> cli_app.err &
+python3 cli_app.py $LI_CLI_PORT > cli_app.log &
