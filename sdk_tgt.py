@@ -21,13 +21,13 @@ import sdk_utl as utl
 # < defines >--------------------------------------------------------------------------------------
 
 # logging level
-DI_LOG_LEVEL = logging.DEBUG
+# DI_LOG_LEVEL = logging.DEBUG
     
 # < module data >----------------------------------------------------------------------------------
 
 # logger
 M_LOG = logging.getLogger(__name__)
-M_LOG.setLevel(DI_LOG_LEVEL)
+M_LOG.setLevel(dfs.DI_LOG_LEVEL)
 
 # -------------------------------------------------------------------------------------------------
 def create_datachannel(ft_datachannel):
@@ -67,7 +67,7 @@ def start(ft_datachannel, ft_target):
     ls_buf = b""
 
     # last activity time
-    li_last_ping = time.time()
+    lf_last_ping = time.time()
 
     # loop...
     while True:
@@ -96,9 +96,9 @@ def start(ft_datachannel, ft_target):
         lrd, lwr, ler = select.select(lrd, lwr, ler, 1)
         '''
         # last activity longer than 15 sec ?
-        if time.time() - li_last_ping > 15:
+        if time.time() - lf_last_ping > 15:
             # last activity time
-            li_last_ping = time.time()
+            lf_last_ping = time.time()
 
             # is datachannel connected ?
             if l_dsock is not None:
@@ -148,32 +148,7 @@ def start(ft_datachannel, ft_target):
             l_dsock.settimeout(None)
             # remove handler from read select
             lrd.remove(l_dcs)
-        '''
-        # target connection requested ?
-        if l_cls in lrd:
-            # log
-            print("target connection request")
-            # accept incoming connection
-            l_tsock, addr = l_cls.accept()
-            print("from:", l_tsock, addr)
-            # set the socket into blocking mode
-            l_tsock.settimeout(None)
-            # remove handler from read select
-            lrd.remove(l_cls)
-            
-            # is datachannel connected ? 
-            if l_dsock is not None:
-                # log
-                print("   datachannel notified of connection")
-                # send command (MSG_CONNECT_TARGET) via datachannel
-                l_dsock.send(struct.pack(">B", dfs.DI_MSG_CONNECT_TARGET))
 
-            # senão, no datachannel
-            else:
-                # so just close the target back out
-                l_tsock.close()
-                l_tsock = None
-        '''        
         # only tsock or dsock should be here now
         for l_sock in lrd:
             # receive data from this source
@@ -185,7 +160,7 @@ def start(ft_datachannel, ft_target):
             # em caso de erro,... 
             except ConnectionResetError:
                 # logger
-                M_LOG.error("connection reset error")
+                M_LOG.error("connection reset error.")
                 # reset data
                 l_data = None
 
@@ -231,7 +206,7 @@ def start(ft_datachannel, ft_target):
             # received data from datachannel ?
             if l_dsock is l_sock:
                 # logger
-                M_LOG.info("data received from client to target.")
+                M_LOG.info("data received from client to target at %s.", str(int(lf_last_ping)))
 
                 # append data in buffer
                 ls_buf = ls_buf + l_data
@@ -247,7 +222,7 @@ def start(ft_datachannel, ft_target):
                         # logger
                         M_LOG.debug("MSG_DISCONNECT_TARGET command")
                         # last activity
-                        li_last_ping = time.time()
+                        lf_last_ping = time.time()
 
                         # is target connected
                         if l_tsock is not None:
@@ -266,7 +241,7 @@ def start(ft_datachannel, ft_target):
                         # logger
                         M_LOG.debug("MSG_CONNECT_TARGET command")
                         # last activity
-                        li_last_ping = time.time()
+                        lf_last_ping = time.time()
 
                         # is target already connected ?
                         if l_tsock is not None:
@@ -291,7 +266,7 @@ def start(ft_datachannel, ft_target):
                         # logger
                         M_LOG.debug("MSG_DATA_TO_TARGET command")
                         # last activity
-                        li_last_ping = time.time()
+                        lf_last_ping = time.time()
 
                         # data length (int with 4 bytes)
                         li_sz = ls_buf[1] << 24 | ls_buf[2] << 16 | ls_buf[3] << 8 | ls_buf[4]
@@ -324,7 +299,7 @@ def start(ft_datachannel, ft_target):
                         # logger
                         M_LOG.debug("MSG_KEEP_ALIVE command")
                         # last activity
-                        li_last_ping = time.time()
+                        lf_last_ping = time.time()
                         
                         # adjust buffer (skip command byte)
                         ls_buf = ls_buf[1:]
@@ -332,7 +307,7 @@ def start(ft_datachannel, ft_target):
                     # senão,...
                     else:
                         # unknown command
-                        raise Exception("unknown command")
+                        raise Exception("unknown command.")
 
                 # next    
                 continue
@@ -340,20 +315,20 @@ def start(ft_datachannel, ft_target):
             # received from target ?
             if l_tsock is l_sock:
                 # logger
-                M_LOG.info("data received from target to client.")
+                M_LOG.info("data received from target to client at %s.", str(int(lf_last_ping)))
                  
                 # is datachannel connected and data ok ?    
                 if (l_dsock is not None) and (len(l_data) > 0):
                     # set socket into unblocking mode
                     l_dsock.settimeout(0)
                     # last activity
-                    li_last_ping = time.time()
+                    lf_last_ping = time.time()
                     # transform it into the format the datachannel expects
                     utl.sendall(l_dsock, struct.pack(">BI", dfs.DI_MSG_DATA_TO_CLIENT, len(l_data)) + l_data)
                     # set the socket into blocking mode
                     l_dsock.settimeout(None)
                     # logger
-                    M_LOG.debug("target sent %s bytes to client.", str(len(l_data)))
+                    M_LOG.debug("target sent %s bytes to client.", str(len(l_data) + 4 + 1))
 
                 # next    
                 continue
@@ -371,6 +346,20 @@ def main():
         # quit
         exit()
 
+    try:
+        # local host name
+        ls_host_name = socket.gethostname()
+        # local host address
+        ls_app_ip = socket.gethostbyname(ls_host_name)
+        M_LOG.info("device hostname: %s / ip: %s", ls_host_name, ls_app_ip)
+
+    # em caso de erro...
+    except socket.gaierror:
+        # logger
+        M_LOG.error("there was an error resolving the host.")
+        # quit
+        sys.exit()
+
     # datachannel port
     li_datachannel = int(llst_args[1])
     # target port
@@ -380,7 +369,7 @@ def main():
     while True:
         try:
             # make connections
-            start(("192.168.15.101", li_datachannel), ("192.168.15.101", li_target))
+            start((ls_app_ip, li_datachannel), (ls_app_ip, li_target))
 
         # em caso de erro,...
         except Exception as err:
@@ -394,7 +383,7 @@ def main():
 if "__main__" == __name__:
 
     # logger
-    logging.basicConfig(level=DI_LOG_LEVEL)
+    logging.basicConfig(level=dfs.DI_LOG_LEVEL)
 
     # disable logging
     # logging.disable(sys.maxint)

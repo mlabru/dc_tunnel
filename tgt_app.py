@@ -11,16 +11,22 @@ import logging
 import socket
 import sys
 
+# local
+import sdk_def as dfs
+
 # < defines >--------------------------------------------------------------------------------------
     
 # logging level
-DI_LOG_LEVEL = logging.DEBUG
+# DI_LOG_LEVEL = logging.DEBUG
+
+# message counter
+DI_MSG_COUNTER = 5
 
 # < module data >----------------------------------------------------------------------------------
 
 # logger
 M_LOG = logging.getLogger(__name__)
-M_LOG.setLevel(DI_LOG_LEVEL)
+M_LOG.setLevel(dfs.DI_LOG_LEVEL)
 
 # -------------------------------------------------------------------------------------------------
 def echo_server(fs_app_ip, fi_app_port):
@@ -66,8 +72,8 @@ def echo_server(fs_app_ip, fi_app_port):
         # send all incoming data back (echo)
         l_conn.sendall(l_data)
 
-        # 50000 messages ?
-        if 0 == (li_ndx % 50000):
+        # MSG_COUNTER messages ?
+        if 0 == (li_ndx % DI_MSG_COUNTER):
             # logger
             M_LOG.debug("Received: %s", str(l_data))
 
@@ -110,7 +116,7 @@ def main():
 if "__main__" == __name__:
     
     # logger
-    logging.basicConfig(level=DI_LOG_LEVEL)
+    logging.basicConfig(level=dfs.DI_LOG_LEVEL)
 
     # disable logging
     # logging.disable(sys.maxint)

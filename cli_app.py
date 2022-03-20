@@ -12,19 +12,22 @@ import socket
 import sys
 import time
 
+# local
+import sdk_def as dfs
+
 # < defines >--------------------------------------------------------------------------------------
     
 # logging level
-DI_LOG_LEVEL = logging.DEBUG
+# DI_LOG_LEVEL = logging.DEBUG
     
+# message counter
+DI_MSG_COUNTER = 5
+
 # < module data >----------------------------------------------------------------------------------
 
 # logger
 M_LOG = logging.getLogger(__name__)
-M_LOG.setLevel(DI_LOG_LEVEL)
-
-# message counter
-DI_MSG_COUNTER = 5
+M_LOG.setLevel(dfs.DI_LOG_LEVEL)
 
 # -------------------------------------------------------------------------------------------------
 def echo_client(fs_app_ip, fi_app_port):
@@ -99,7 +102,7 @@ def main():
 if "__main__" == __name__:
 
     # logger
-    logging.basicConfig(level=DI_LOG_LEVEL)
+    logging.basicConfig(level=dfs.DI_LOG_LEVEL)
     
     # disable logging
     # logging.disable(sys.maxint)

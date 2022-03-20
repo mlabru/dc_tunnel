@@ -21,13 +21,13 @@ import sdk_utl as utl
 # < defines >--------------------------------------------------------------------------------------
     
 # logging level
-DI_LOG_LEVEL = logging.INFO
+# DI_LOG_LEVEL = logging.INFO
 
 # < module data >----------------------------------------------------------------------------------
 
 # logger
 M_LOG = logging.getLogger(__name__)
-M_LOG.setLevel(DI_LOG_LEVEL)
+M_LOG.setLevel(dfs.DI_LOG_LEVEL)
 
 # -------------------------------------------------------------------------------------------------
 def start(ft_datachannel, ft_client):
@@ -168,7 +168,7 @@ def start(ft_datachannel, ft_client):
         # received data from client ?
         if l_csock in lrd:
             # logger
-            M_LOG.info("data received from client to target.")
+            M_LOG.info("data received from client to target at %s.", str(int(lf_last_ping)))
 
             # receive data from client
             l_data = l_csock.recv(4096)
@@ -261,7 +261,7 @@ def start(ft_datachannel, ft_client):
                     # valid buffer size ?
                     if len(ls_buf) >= (1 + 4 + li_sz):
                         # data
-                        data = ls_buf[1 + 4:1 + 4 + li_sz]
+                        l_data = ls_buf[1 + 4:1 + 4 + li_sz]
                         # adjust buffer
                         ls_buf = ls_buf[1 + 4 + li_sz:]
 
@@ -309,11 +309,25 @@ def main():
         # quit
         exit()
 
+    try:
+        # local host name
+        ls_host_name = socket.gethostname()
+        # local host address
+        ls_app_ip = socket.gethostbyname(ls_host_name)
+        M_LOG.info("device hostname: %s / ip: %s", ls_host_name, ls_app_ip)
+
+    # em caso de erro...
+    except socket.gaierror:
+        # logger
+        M_LOG.error("there was an error resolving the host.")
+        # quit
+        sys.exit()
+
     # datachannel endpoint
-    lt_datachannel = ("192.168.15.101", int(sys.argv[1]))
+    lt_datachannel = (ls_app_ip, int(sys.argv[1]))
 
     # client endpoint
-    lt_client = ("192.168.15.101", int(sys.argv[2]))
+    lt_client = (ls_app_ip, int(sys.argv[2]))
 
     # the address and port pairs are for a TCP/IP connection.
     # ("192.168.15.101", 61001), ("rpi-cam", 5900)
@@ -325,7 +339,7 @@ def main():
 if "__main__" == __name__:
     
     # logger
-    logging.basicConfig(level=DI_LOG_LEVEL)
+    logging.basicConfig(level=dfs.DI_LOG_LEVEL)
 
     # disable logging
     # logging.disable(sys.maxint)
