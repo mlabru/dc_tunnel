@@ -73,6 +73,7 @@ def get_answer():
     if "answer" in gdct_data:
         # convert to JSON 
         l_json = json.dumps(gdct_data["answer"])
+        M_LOG.debug("Requested answer: %s", str(l_json)) 
 
         # remove answer from dict
         del gdct_data["answer"]
@@ -80,6 +81,7 @@ def get_answer():
         # return ok
         return flask.Response(l_json, status=200, mimetype="application/json")
 
+    M_LOG.debug("No answer yet...") 
     # return error
     return flask.Response(status=503)
 
@@ -96,6 +98,7 @@ def get_offer():
     if "offer" in gdct_data:
         # convert to JSON 
         l_json = json.dumps(gdct_data["offer"])
+        M_LOG.debug("Requested offer: %s", str(l_json)) 
 
         # remove offer from dict
         del gdct_data["offer"]
@@ -121,10 +124,13 @@ def offer():
         gdct_data["offer"] = {"id": flask.request.form["id"],
                               "type": flask.request.form["type"],
                               "sdp": flask.request.form["sdp"]}
+
+        M_LOG.debug("Saved offer: %s", str(gdct_data["offer"])) 
         
         # return ok
         return flask.Response(status=200)
 
+    M_LOG.debug("Error in offer...") 
     # return error
     return flask.Response(status=400)
 

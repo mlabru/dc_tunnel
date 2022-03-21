@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 sdk_off
-simula a parte que inicia a comunicação oferecendo um serviço. Por exemplo uma camera. 
+simula a parte que inicia a comunicação oferecendo um serviço.
 
 2022/fev  1.0  mlabru   initial version (Linux/Python)
 """
@@ -12,6 +12,8 @@ import asyncio
 import json
 import logging
 import requests
+
+import sys    ####
 
 # aiortc
 import aiortc as rtc
@@ -33,6 +35,12 @@ DS_ID = "CAM5513"
 M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(dfs.DI_LOG_LEVEL)
 
+aiortc_logger = logging.getLogger("aiortc")
+aiortc_logger.setLevel(logging.ERROR)
+
+aioice_logger = logging.getLogger("aioice")
+aioice_logger.setLevel(logging.ERROR)
+
 # -------------------------------------------------------------------------------------------------
 async def main():
     """
@@ -45,19 +53,24 @@ async def main():
     l_peer_connection = rtc.RTCPeerConnection()
     assert l_peer_connection
 
-    M_LOG.debug("peer_connection: %s", str(l_peer_connection))
-
     # create data channel
     l_channel = l_peer_connection.createDataChannel("chat")
     assert l_channel
 
-    M_LOG.debug("channel: %s", str(l_channel))
+    # logger
+    M_LOG.debug("Channel is %s", l_channel.label)
 
     # ---------------------------------------------------------------------------------------------
     async def send_pings(f_channel):
         """
         send ping message
         """
+        # logger
+        M_LOG.info("send_pings")
+      
+        # logger
+        M_LOG.debug("Channel is %s", f_channel.label)
+      
         # init message counter
         li_num = 0
 
@@ -83,9 +96,15 @@ async def main():
         on open
         """
         # logger
-        M_LOG.info("channel openned")
+        M_LOG.info("on_open: channel openned")
+      
+        # build message
+        ls_msg = "Hello from Offerer via Datachannel (1st offer)"
+        
+        # send message
+        l_channel.send(ls_msg)
 
-        l_channel.send("Hello from Offerer via Datachannel")
+        # execute send_pings in the background, without waiting for it to finish
         asyncio.ensure_future(send_pings(l_channel))
 
     # ---------------------------------------------------------------------------------------------
@@ -95,15 +114,17 @@ async def main():
         on message
         """
         # logger
-        M_LOG.info("Received via RTC Datachannel: %s", fs_message)
+        M_LOG.info("on_message")
+      
+        # logger
+        M_LOG.debug("Received via RTC Datachannel: %s", fs_message)
 
+    # ---------------------------------------------------------------------------------------------
 
     # create an SDP offer
     l_offer = await l_peer_connection.createOffer()
     assert l_offer
     
-    M_LOG.debug("offer: %s", str(l_offer))
-
     # set local description
     await l_peer_connection.setLocalDescription(l_offer)
     
@@ -114,13 +135,11 @@ async def main():
     
     # send offer
     l_resp = requests.post(dfs.DS_SIGNALING_SERVER_URL + "/offer", data=ldct_message)
-    M_LOG.debug("status_code: %s", str(l_resp.status_code))
     
     # poll for answer...
     while True:
         # wait answer
         l_resp = requests.get(dfs.DS_SIGNALING_SERVER_URL + "/get_answer")
-        M_LOG.debug("l_resp: %s", str(l_resp))
 
         #  service unavailable ?
         if 503 == l_resp.status_code:
@@ -131,25 +150,21 @@ async def main():
 
         # ok ?
         elif 200 == l_resp.status_code:
-            # convert json
+            # convert received response to json
             l_data = l_resp.json()
 
             # answer ?
             if "answer" == l_data["type"]:
-                # create session descriptor
-                l_rd = rtc.RTCSessionDescription(sdp=l_data["sdp"], type=l_data["type"])
-                assert l_rd
+                # create session descriptor with sdp/type from answer
+                l_sd = rtc.RTCSessionDescription(sdp=l_data["sdp"], type=l_data["type"])
+                assert l_sd
 
                 # set remote description
-                await l_peer_connection.setRemoteDescription(l_rd)
-                M_LOG.debug("remoteDescription: %s", str(l_peer_connection.remoteDescription))
+                await l_peer_connection.setRemoteDescription(l_sd)
 
                 # forever...  
                 while True:
-                    # logger
-                    # M_LOG.debug("Ready for Stuff")
-
-                    # wait   
+                    # keep background work running
                     await asyncio.sleep(1)
 
             # otherwise,... 

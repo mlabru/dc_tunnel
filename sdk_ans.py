@@ -12,6 +12,8 @@ import asyncio
 import logging
 import requests
 
+import sys ###
+
 # aiortc
 from aiortc import RTCIceCandidate, RTCPeerConnection, RTCSessionDescription, RTCConfiguration, RTCIceServer
 
@@ -32,6 +34,12 @@ DS_ID = "answerer01"
 M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(dfs.DI_LOG_LEVEL)
 
+aiortc_logger = logging.getLogger("aiortc")
+aiortc_logger.setLevel(logging.ERROR)
+
+aioice_logger = logging.getLogger("aioice")
+aioice_logger.setLevel(logging.ERROR)
+
 # -------------------------------------------------------------------------------------------------
 async def main():
     """
@@ -43,13 +51,17 @@ async def main():
     l_peer_connection = RTCPeerConnection()
     assert l_peer_connection
 
-    M_LOG.debug("peer_connection: %s", str(l_peer_connection))
-        
     # ---------------------------------------------------------------------------------------------
     async def send_pings(f_channel):
         """
         send ping message
         """
+        # logger
+        M_LOG.info("send_pings")
+
+        # logger
+        M_LOG.debug("Channel is %s", f_channel.label)
+
         # init message counter
         li_num = 0
 
@@ -72,27 +84,32 @@ async def main():
     @l_peer_connection.on("datachannel")
     def on_datachannel(f_channel):
         """
-        on open
+        on datachannel
         """
         # logger
-        M_LOG.info("%s - created by remote party", str(f_channel))
+        M_LOG.info("on_datachannel")
+
+        # logger
+        M_LOG.debug("%s - created by remote party", str(f_channel.label))
 
         # send message
-        f_channel.send("Hello From Answerer via RTC Datachannel")
+        f_channel.send("Hello from Answerer via RTC Datachannel (1st answer)")
 
         @f_channel.on("message")
-        async def on_message(message):
+        async def on_message(f_message):
             # logger
-            M_LOG.info("Received via RTC Datachannel: %s", str(message))
+            M_LOG.info("on_message")
+
+            # logger
+            M_LOG.debug("Received via RTC Datachannel: %s", str(f_message))
 
         # send pings
         asyncio.ensure_future(send_pings(f_channel))
     
     # ---------------------------------------------------------------------------------------------
 
-    # get offer
+    # search for an offer
     l_resp = requests.get(dfs.DS_SIGNALING_SERVER_URL + "/get_offer")
-    M_LOG.debug("l_resp: %s", str(l_resp.status_code))
 
     # ok ?
     if 200 == l_resp.status_code:
@@ -101,8 +118,9 @@ async def main():
 
         # offer ?
         if "offer" == l_data["type"]:
-            # create session descriptor
+            # create session descriptor with sdp/type from offer
             l_rd = RTCSessionDescription(sdp=l_data["sdp"], type=l_data["type"])
+            assert l_rd
 
             # set remote description
             await l_peer_connection.setRemoteDescription(l_rd)
@@ -115,15 +133,17 @@ async def main():
                             "type": l_peer_connection.localDescription.type}
 
             # send answer
-            l_r = requests.post(dfs.DS_SIGNALING_SERVER_URL + '/answer', data=ldct_message)
-            M_LOG.info("message: %s", str(ldct_message))
+            l_resp = requests.post(dfs.DS_SIGNALING_SERVER_URL + '/answer', data=ldct_message)
 
             # forever...
             while True:
-                # logger
-                M_LOG.info("Ready for Stuff")
-                # wait
+                # keep background work running
                 await asyncio.sleep(1)
+
+        # otherwise,... 
+        else:
+            # logger
+            M_LOG.error("Wrong type.")
 
 # -------------------------------------------------------------------------------------------------
 # this is the bootstrap process
