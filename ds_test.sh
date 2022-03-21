@@ -2,6 +2,7 @@
 
 # datachannel address
 LS_TUNNEL_HOST="einstein"
+LS_TUNNEL_HOST="localhost"
 LI_TUNNEL_PORT=61001
 
 # device address
