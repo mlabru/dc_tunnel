@@ -69,7 +69,7 @@ async def main():
             await asyncio.sleep(1)
 
     # ---------------------------------------------------------------------------------------------
-    @peer_connection.on("datachannel")
+    @l_peer_connection.on("datachannel")
     def on_datachannel(f_channel):
         """
         on open
@@ -80,7 +80,7 @@ async def main():
         # send message
         f_channel.send("Hello From Answerer via RTC Datachannel")
 
-        @channel.on("message")
+        @f_channel.on("message")
         async def on_message(message):
             # logger
             M_LOG.info("Received via RTC Datachannel: %s", str(message))
@@ -91,7 +91,7 @@ async def main():
     # ---------------------------------------------------------------------------------------------
 
     # get offer
-    l_resp = requests.get(dfs.SIGNALING_SERVER_URL + "/get_offer")
+    l_resp = requests.get(dfs.DS_SIGNALING_SERVER_URL + "/get_offer")
     M_LOG.debug("l_resp: %s", str(l_resp.status_code))
 
     # ok ?
@@ -115,7 +115,7 @@ async def main():
                             "type": l_peer_connection.localDescription.type}
 
             # send answer
-            r = requests.post(dfs.SIGNALING_SERVER_URL + '/answer', data=ldct_message)
+            l_r = requests.post(dfs.DS_SIGNALING_SERVER_URL + '/answer', data=ldct_message)
             M_LOG.info("message: %s", str(ldct_message))
 
             # forever...

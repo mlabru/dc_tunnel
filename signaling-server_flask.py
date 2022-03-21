@@ -87,7 +87,7 @@ def get_answer():
 @g_app.route("/get_offer", methods=["GET"])
 def get_offer():
     """
-    get_offer
+    get offer
     """
     # logger
     M_LOG.info("get_offer")

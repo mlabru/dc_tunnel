@@ -77,7 +77,7 @@ async def main():
             await asyncio.sleep(1)
 
     # ---------------------------------------------------------------------------------------------
-    @channel.on("open")
+    @l_channel.on("open")
     def on_open():
         """
         on open
@@ -85,11 +85,11 @@ async def main():
         # logger
         M_LOG.info("channel openned")
 
-        channel.send("Hello from Offerer via Datachannel")
-        asyncio.ensure_future(send_pings(channel))
+        l_channel.send("Hello from Offerer via Datachannel")
+        asyncio.ensure_future(send_pings(l_channel))
 
     # ---------------------------------------------------------------------------------------------
-    @channel.on("message")
+    @l_channel.on("message")
     def on_message(fs_message):
         """
         on message
