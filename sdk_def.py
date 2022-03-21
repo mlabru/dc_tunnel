@@ -21,4 +21,10 @@ DI_MSG_DATA_TO_CLIENT = 2
 DI_MSG_DATA_TO_TARGET = 3
 DI_MSG_KEEP_ALIVE = 4
 
+# signaling server URL
+DS_SIGNALING_SERVER_URL = 'http://0.0.0.0:6969'
+
+# id do equipamento (p.ex. serial no.)
+# DS_ID = "CAM5513"
+
 # < the end >--------------------------------------------------------------------------------------

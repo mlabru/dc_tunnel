@@ -55,12 +55,12 @@ def echo_server(fs_app_ip, fi_app_port):
     M_LOG.info("client addr: %s", str(l_addr))
 
     # init packet number
-    li_ndx = 0
+    li_num = 0
 
     # while ok...
     while 1:
         # increment packet number
-        li_ndx += 1
+        li_num += 1
 
         # read client data
         l_data = l_conn.recv(4096)
@@ -73,7 +73,7 @@ def echo_server(fs_app_ip, fi_app_port):
         l_conn.sendall(l_data)
 
         # MSG_COUNTER messages ?
-        if 0 == (li_ndx % DI_MSG_COUNTER):
+        if 0 == (li_num % DI_MSG_COUNTER):
             # logger
             M_LOG.debug("Received: %s", str(l_data))
 

@@ -43,21 +43,21 @@ def echo_client(fs_app_ip, fi_app_port):
     l_ssck.connect((fs_app_ip, fi_app_port))
 
     # init packet number
-    li_ndx = 0
+    li_num = 0
 
     # while ok...
     while True:
         # increment packet number
-        li_ndx += 1
+        li_num += 1
 
         # send packet
-        l_ssck.sendall("Hello, world ({})".format(li_ndx).encode())
+        l_ssck.sendall("Hello, world ({})".format(li_num).encode())
 
         # receive response
         l_data = l_ssck.recv(4096)
 
         # MSG_COUNTER messages ?
-        if 0 == (li_ndx % DI_MSG_COUNTER):
+        if 0 == (li_num % DI_MSG_COUNTER):
             # logger
             M_LOG.debug("Received: %s", str(l_data))
         
